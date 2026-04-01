@@ -10,6 +10,13 @@ dependencies = [
     "vshc>=0.1.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "ruff",
+    "mypy",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
