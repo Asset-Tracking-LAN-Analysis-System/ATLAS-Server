@@ -12,7 +12,7 @@ class DBHandler:
         self.connection = sqlite3.Connection(self.db_path, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
-    ## get entire data-sets ##
+    ## get entire datasets ##
     def get_all_properties(self) -> list[dict[str, str | int | None]]:
         self.cursor.execute("SELECT * FROM properties")
         raw_data: list[tuple[int, str, str]] = self.cursor.fetchall()
@@ -43,12 +43,26 @@ class DBHandler:
         return result
 
     ## get specific data ##
-    def get_values_of_entity(self, entity_id: str):
+    def get_values_of_entity(self, entity_id: str) -> list[dict[str, str | int]]:
         self.cursor.execute(
             f"SELECT * FROM entity_properties WHERE entity_id = '{entity_id}'"
         )
         entity_properties: list[tuple[str, int, str]] = self.cursor.fetchall()
-        # TODO: finish
+        result: list[dict[str, str | int]] = []
+        for entity_id, property_id, value in entity_properties:
+            self.cursor.execute(f"SELECT * FROM properties WHERE id = '{property_id}'")
+            property_data: tuple[int, str, str] = self.cursor.fetchone()
+
+            result.append(
+                {
+                    "ENTITY_ID": entity_id,
+                    "PROPERTY_ID": property_id,
+                    "PROPERTY_NAME": property_data[1],
+                    "PROPERTY_TYPE": property_data[2],
+                    "PROPERTY_VALUE": value,
+                }
+            )
+        return result
 
     ## add Data ##
     def add_property(self, name: str, type: str) -> None:

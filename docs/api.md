@@ -1,277 +1,338 @@
-# API Design Pattern Guide
+# API Overview
 
-## Purpose
+This API provides access to entities, properties, and types. It is built with FastAPI and uses a database handler on the backend.
 
-This document defines a **reproducible, generic API pattern** that can be reused across projects. It is intentionally abstract so different teams can implement their own logic while following the same structure.
-
-The goal:
-
-- Consistent communication between client and server
-- Clear request/response contracts
-- Easy extensibility
+The API follows a simple JSON response format for both successful and failed requests. Humanity keeps inventing new ways to wrap database calls in HTTP, and somehow this is still one of the cleaner ones.
 
 ---
 
-## Architecture Overview
+# Base URL
 
-Client and server are **independent systems**:
+```text
+http://localhost:8000
+```
 
-- Client → sends HTTP requests
-- Server → processes logic + database
-- Communication → JSON over HTTP
+---
 
-The server **does NOT need to run on the same machine** as the client.
+# Standard Response Format
+
+Successful response:
+
+```json
+{
+  "STATUS": "success",
+  "DATA": [],
+  "ERROR": null,
+  "CODE": 200
+}
+```
+
+Failed response:
+
+```json
+{
+  "STATUS": "fail",
+  "ERROR": "Internal server error",
+  "CODE": 500
+}
+```
+
+---
+
+# Available Endpoints
+
+## GET Endpoints
+
+### Get all properties
+
+```http
+GET /properties
+```
+
+Returns a list of all available properties.
+
+Example response:
+
+```json
+{
+  "STATUS": "success",
+  "DATA": [
+    {
+      "ID": 1,
+      "NAME": "color",
+      "TYPE": "string"
+    }
+  ],
+  "ERROR": null,
+  "CODE": 200
+}
+```
+
+---
+
+### Get all types
+
+```http
+GET /types
+```
+
+Returns a list of all available types.
+
+---
+
+### Get all entities
+
+```http
+GET /entities
+```
+
+Returns a list of all entities.
+
+---
+
+### Get values of a specific entity
+
+```http
+GET /entity/{entity_id}
+```
+
+Path parameters:
+
+| Name      | Type   | Description                    |
+| --------- | ------ | ------------------------------ |
+| entity_id | string | The ID of the requested entity |
 
 Example:
 
-```
-Client (Desktop / Web) → Internet → Server (API)
-```
-
----
-
-## Base URL Pattern
-
-```
-https://api.your-domain.com/v1
-```
-
-Always version your API.
-
----
-
-## Generic Request Pattern
-
-### GET (read data)
-
-```
-GET /resources
-GET /resources/{id}
-```
-
-### POST (create)
-
-```
-POST /resources
-```
-
-### PUT / PATCH (update)
-
-```
-PUT /resources/{id}
-```
-
-### DELETE (remove)
-
-```
-DELETE /resources/{id}
+```http
+GET /entity/001-000001
 ```
 
 ---
 
-## Generic Query Pattern (Filtering & Pagination)
+## POST Endpoints
 
+### Create a new property
+
+```http
+POST /property
 ```
-GET /resources?limit=10&offset=0&filter=name:value
-```
 
-### Parameters
-
-- `limit` → number of results
-- `offset` → starting point
-- `filter` → optional filtering logic
-
----
-
-## Standard Response Schema
-
-All endpoints should follow a consistent structure:
+Request body:
 
 ```json
 {
-  "status": "success",
-  "data": [],
-  "meta": {
-    "count": 0,
-    "limit": 10,
-    "offset": 0
-  },
-  "error": null
+  "NAME": "weight",
+  "TYPE": "integer"
 }
 ```
 
-### Error Example
+Example success response:
 
 ```json
 {
-  "status": "error",
-  "data": null,
-  "meta": null,
-  "error": {
-    "message": "Resource not found",
-    "code": 404
-  }
+  "STATUS": "success",
+  "ERROR": null,
+  "CODE": 201
 }
 ```
 
 ---
 
-## Server Skeleton (Python / FastAPI)
+## PUT Endpoint Example
+
+The current API does not include an update route yet, but a common pattern would look like this:
+
+```http
+PUT /property/{property_id}
+```
+
+Example request body:
+
+```json
+{
+  "NAME": "updated_weight",
+  "TYPE": "float"
+}
+```
+
+Example response:
+
+```json
+{
+  "STATUS": "success",
+  "ERROR": null,
+  "CODE": 200
+}
+```
+
+---
+
+## DELETE Endpoint Example
+
+The current API does not include a delete route yet, but a common pattern would look like this:
+
+```http
+DELETE /property/{property_id}
+```
+
+Example response:
+
+```json
+{
+  "STATUS": "success",
+  "ERROR": null,
+  "CODE": 200
+}
+```
+
+---
+
+# Server-Side Python Skeleton
 
 ```python
-from fastapi import FastAPI, Query
-from typing import List
+from fastapi import FastAPI
 
 app = FastAPI()
 
-# Mock database
-DATABASE = []
 
-@app.get("/resources")
-def list_resources(limit: int = Query(10), offset: int = Query(0)):
-    data = DATABASE[offset: offset + limit]
+@app.get("/items")
+def get_items():
     return {
-        "status": "success",
-        "data": data,
-        "meta": {
-            "count": len(DATABASE),
-            "limit": limit,
-            "offset": offset
-        },
-        "error": None
+        "STATUS": "success",
+        "DATA": [],
+        "ERROR": None,
+        "CODE": 200,
     }
 
-@app.get("/resources/{resource_id}")
-def get_resource(resource_id: int):
-    for item in DATABASE:
-        if item["id"] == resource_id:
-            return {
-                "status": "success",
-                "data": item,
-                "meta": None,
-                "error": None
-            }
+
+@app.post("/item")
+def create_item(data: dict):
     return {
-        "status": "error",
-        "data": None,
-        "meta": None,
-        "error": {"message": "Not found", "code": 404}
+        "STATUS": "success",
+        "ERROR": None,
+        "CODE": 201,
     }
 
-@app.post("/resources")
-def create_resource(data: dict):
-    data["id"] = len(DATABASE) + 1
-    DATABASE.append(data)
+
+@app.put("/item/{item_id}")
+def update_item(item_id: int, data: dict):
     return {
-        "status": "success",
-        "data": data,
-        "meta": None,
-        "error": None
+        "STATUS": "success",
+        "ERROR": None,
+        "CODE": 200,
+    }
+
+
+@app.delete("/item/{item_id}")
+def delete_item(item_id: int):
+    return {
+        "STATUS": "success",
+        "ERROR": None,
+        "CODE": 200,
     }
 ```
 
 ---
 
-## Client Skeleton (Python)
+# Python Client Skeleton
 
 ```python
 import requests
 
-BASE_URL = "https://api.your-domain.com/v1"
+BASE_URL = "http://localhost:8000"
 
-# Get list
-res = requests.get(f"{BASE_URL}/resources", params={
-    "limit": 10,
-    "offset": 0
-})
-print(res.json())
 
-# Get single
-res = requests.get(f"{BASE_URL}/resources/1")
-print(res.json())
+def get_properties() -> dict:
+    response = requests.get(f"{BASE_URL}/properties")
+    return response.json()
 
-# Create
-res = requests.post(
-    f"{BASE_URL}/resources",
-    json={"name": "Example"}
-)
-print(res.json())
+
+def create_property(name: str, property_type: str) -> dict:
+    payload = {
+        "NAME": name,
+        "TYPE": property_type,
+    }
+
+    response = requests.post(f"{BASE_URL}/property", json=payload)
+    return response.json()
+
+
+def update_property(property_id: int, name: str, property_type: str) -> dict:
+    payload = {
+        "NAME": name,
+        "TYPE": property_type,
+    }
+
+    response = requests.put(
+        f"{BASE_URL}/property/{property_id}",
+        json=payload,
+    )
+    return response.json()
+
+
+def delete_property(property_id: int) -> dict:
+    response = requests.delete(f"{BASE_URL}/property/{property_id}")
+    return response.json()
 ```
 
 ---
 
-## Client Skeleton (JavaScript)
+# JavaScript Client Skeleton
 
 ```javascript
-const BASE_URL = "https://api.your-domain.com/v1";
+const BASE_URL = "http://localhost:8000";
 
-// Get list
-fetch(`${BASE_URL}/resources?limit=10&offset=0`)
-  .then((res) => res.json())
-  .then((data) => console.log(data));
+async function getProperties() {
+  const response = await fetch(`${BASE_URL}/properties`);
+  return await response.json();
+}
 
-// Get single
-fetch(`${BASE_URL}/resources/1`)
-  .then((res) => res.json())
-  .then((data) => console.log(data));
+async function createProperty(name, type) {
+  const response = await fetch(`${BASE_URL}/property`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      NAME: name,
+      TYPE: type,
+    }),
+  });
 
-// Create
-fetch(`${BASE_URL}/resources`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ name: "Example" }),
-})
-  .then((res) => res.json())
-  .then((data) => console.log(data));
+  return await response.json();
+}
+
+async function updateProperty(propertyId, name, type) {
+  const response = await fetch(`${BASE_URL}/property/${propertyId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      NAME: name,
+      TYPE: type,
+    }),
+  });
+
+  return await response.json();
+}
+
+async function deleteProperty(propertyId) {
+  const response = await fetch(`${BASE_URL}/property/${propertyId}`, {
+    method: "DELETE",
+  });
+
+  return await response.json();
+}
 ```
 
 ---
 
-## Design Principles
+# Notes
 
-### 1. Consistency
-
-Every endpoint follows the same structure.
-
-### 2. Separation of Concerns
-
-- Client → UI + requests
-- Server → logic + database
-
-### 3. Scalability
-
-Always assume data will grow.
-
-### 4. Extensibility
-
-New features = new endpoints, not hacks.
-
----
-
-## Naming Conventions
-
-- Use plural nouns: `/resources`
-- Use lowercase + hyphens if needed
-- Avoid verbs in URLs
-
----
-
-## Documentation Strategy
-
-- Provide OpenAPI (`/docs`)
-- Provide this Markdown as human-readable guide
-- Keep examples minimal and reproducible
-
----
-
-## Summary
-
-This skeleton defines a **universal API pattern**:
-
-- Predictable endpoints
-- Standardized responses
-- Language-independent clients
-
-If every developer follows this, integration becomes trivial and maintenance stays manageable.
+- Use HTTP status codes consistently.
+- Keep response structures identical across all endpoints.
+- Prefer singular endpoint names for single resources and plural names for collections.
+- Add validation models with Pydantic for production use.
+- Consider adding authentication if the API will be public. Because eventually every harmless little internal API turns into "temporary production" and then survives for seven years through fear and duct tape.

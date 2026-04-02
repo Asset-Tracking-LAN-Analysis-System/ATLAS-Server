@@ -30,3 +30,6 @@ repos:
     rev: v1.20.0
     hooks:
       - id: mypy
+        args:
+          - --disable-error-code=untyped-decorator
+          - --ignore-missing-imports
