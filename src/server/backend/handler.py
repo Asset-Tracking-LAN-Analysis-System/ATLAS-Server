@@ -2,6 +2,7 @@ import sqlite3
 import os
 from vshc.database.utils import detect_id_gap
 from pathlib import Path
+from .helper import get_first_free_serial
 
 
 class DBHandler:
@@ -65,14 +66,65 @@ class DBHandler:
         return result
 
     ## add Data ##
-    def add_property(self, name: str, type: str) -> None:
+    def add_property(self, name: str, data_type: str) -> None:
         """
         type can be text, float, int or bool
         """
+        if data_type not in ["text", "float", "int", "bool"]:
+            raise ValueError(f"{data_type=} is not a valid data type")
         gap: int = detect_id_gap(self.cursor, "properties", "id")
         self.cursor.execute(
             "INSERT INTO properties (id, name, data_type) VALUES (?, ?, ?)",
-            (gap, name, type),
+            (gap, name, data_type),
+        )
+        self.connection.commit()
+
+    def add_type(self, name: str, is_network_relevant: bool) -> None:
+        gap: int = detect_id_gap(self.cursor, "entity_types", "id")
+        self.cursor.execute(
+            "INSERT INTO entity_types (id, name, network_relevant) VALUES (?, ?, ?)",
+            (gap, name, 1 if is_network_relevant else 0),
+        )
+        self.connection.commit()
+
+    def add_entity(self, type_id: int, name: str) -> None:
+        serial: int = get_first_free_serial(self.cursor, type_id)
+        entity_id: str = f"{type_id:03}-{serial:06}"
+        self.cursor.execute(
+            "INSERT INTO entities (id, type_id, serial, name) VALUES (?, ?, ?, ?)",
+            (entity_id, type_id, serial, name),
+        )
+        self.connection.commit()
+
+    ## update Data ##
+    def update_property(
+        self, property_id: int, new_name: str, new_data_type: str
+    ) -> None:
+        if new_data_type not in ["text", "float", "int", "bool"]:
+            raise ValueError(f"{new_data_type=} is not a valid data type.")
+        self.cursor.execute(
+            f"SELECT * FROM entity_properties WHERE property_id={property_id}"
+        )
+        if self.cursor.fetchall() != []:
+            raise RuntimeError(
+                "Cannot change property type while records using this type already exist."
+            )
+        self.cursor.execute(
+            f"UPDATE properties SET name='{new_name}', data_type='{new_data_type}' WHERE id={property_id}"
+        )
+        self.connection.commit()
+
+    def update_type(
+        self, type_id: int, new_name: str, new_is_network_relevant: bool
+    ) -> None:
+        self.cursor.execute(
+            f"UPDATE entity_types SET name='{new_name}', network_relevant='{1 if new_is_network_relevant else 0}', WHERE id={type_id}"
+        )
+        self.connection.commit()
+
+    def update_entity(self, entity_id: str, new_name: str) -> None:
+        self.cursor.execute(
+            f"UPDATE entities SET name='{new_name}' WHERE id='{entity_id}'"
         )
         self.connection.commit()
 
