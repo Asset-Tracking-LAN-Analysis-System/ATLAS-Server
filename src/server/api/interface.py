@@ -20,12 +20,27 @@ def list_properties() -> PropertyListResponse | ErrorResponse:
     try:
         data: list[dict[str, str | int | None]] = handler.get_all_properties()
     except Exception as e:
-        return {"STATUS": "fail", "ERROR": e, "CODE": 500}
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
     else:
         if data is None:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 204}
+            return PropertyListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
         else:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 200}
+            return PropertyListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
 
 
 @app.get("/types")
@@ -33,12 +48,27 @@ def list_types() -> TypeListResponse | ErrorResponse:
     try:
         data: list[dict[str, str | int | bool]] = handler.get_all_types()
     except Exception as e:
-        return {"STATUS": "fail", "ERROR": e, "CODE": 500}
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
     else:
         if data is None:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 204}
+            return TypeListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
         else:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 200}
+            return TypeListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
 
 
 @app.get("/entities")
@@ -46,12 +76,27 @@ def list_entities() -> EntityListResponse | ErrorResponse:
     try:
         data: list[dict[str, str]] = handler.get_all_entities()
     except Exception as e:
-        return {"STATUS": "fail", "ERROR": e, "CODE": 500}
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
     else:
         if data is None:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 204}
+            return EntityListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
         else:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 200}
+            return EntityListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
 
 
 ## get specific data ##
@@ -60,12 +105,27 @@ def list_values_of_entity(entity_id: str) -> EntityValueListResponse | ErrorResp
     try:
         data: list[dict[str, str | int]] = handler.get_values_of_entity(entity_id)
     except Exception as e:
-        return {"STATUS": "fail", "ERROR": e, "CODE": 500}
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
     else:
         if data is None:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 204}
+            return EntityValueListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
         else:
-            return {"STATUS": "success", "DATA": data, "ERROR": None, "CODE": 200}
+            return EntityValueListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
 
 
 ## add Data ##
@@ -73,12 +133,21 @@ def list_values_of_entity(entity_id: str) -> EntityValueListResponse | ErrorResp
 def add_property(data: dict[str, str]) -> SuccessResponse | ErrorResponse:
     try:
         name: str = data["NAME"]
-        type: str = data["TYPE"]
-        handler.add_property(name, type)
+        data_type: str = data["TYPE"]
+        handler.add_property(name, data_type)
     except Exception as e:
-        return {"STATUS": "fail", "ERROR": e, "CODE": 500}
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
     else:
-        return {"STATUS": "success", "ERROR": None, "CODE": 201}
+        return SuccessResponse(
+            STATUS="success",
+            ERROR=None,
+            CODE=201,
+        )
 
 
 def main() -> None:

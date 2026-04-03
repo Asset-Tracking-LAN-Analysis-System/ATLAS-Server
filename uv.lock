@@ -38,6 +38,7 @@ version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "pydantic" },
     { name = "uvicorn" },
     { name = "vshc" },
 ]
@@ -52,6 +53,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.135.1" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "uvicorn", specifier = ">=0.42.0" },
     { name = "vshc", specifier = ">=0.1.0" },
 ]

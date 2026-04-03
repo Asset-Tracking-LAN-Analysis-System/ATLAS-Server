@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = "==3.13.*"
 dependencies = [
     "fastapi>=0.135.1",
+    "pydantic>=2.12.5",
     "uvicorn>=0.42.0",
     "vshc>=0.1.0",
 ]
@@ -29,3 +30,4 @@ strict = true
 warn_unused_configs = true
 warn_return_any = true
 warn_unused_ignores = true
+plugins = ["pydantic.mypy"]

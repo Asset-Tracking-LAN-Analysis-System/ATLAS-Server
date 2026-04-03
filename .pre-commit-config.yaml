@@ -15,7 +15,7 @@ repos:
   # Python linting + formatting
   # -------------------------
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.8
+    rev: v0.15.9
     hooks:
       - id: ruff
         name: ruff-lint
@@ -30,6 +30,8 @@ repos:
     rev: v1.20.0
     hooks:
       - id: mypy
+        additional_dependencies:
+          - pydantic>=2
         args:
           - --disable-error-code=untyped-decorator
           - --ignore-missing-imports
