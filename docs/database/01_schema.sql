@@ -45,7 +45,7 @@ CREATE TABLE entity_properties (
 
 CREATE TABLE network_interfaces (
     id INTEGER PRIMARY KEY,
-    entity_id TEXT,
+    entity_id TEXT NOT NULL,
     name TEXT,
     mac TEXT,
     ip TEXT

@@ -261,6 +261,64 @@ def update_entity(
         )
 
 
+## delete Data ##
+@app.delete("/property/{property_id}")
+def delete_property(property_id: int) -> SuccessResponse | ErrorResponse:
+    try:
+        handler.delete_property(property_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(
+            STATUS="success",
+            ERROR=None,
+            CODE=201,
+        )
+
+
+@app.delete("/type/{type_id}")
+def delete_type(type_id: int) -> SuccessResponse | ErrorResponse:
+    try:
+        handler.delete_type(type_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(
+            STATUS="success",
+            ERROR=None,
+            CODE=201,
+        )
+
+
+@app.delete("/entity/{entity_id}")
+def delete_entity(entity_id: str) -> SuccessResponse | ErrorResponse:
+    try:
+        handler.delete_entity(entity_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(
+            STATUS="success",
+            ERROR=None,
+            CODE=201,
+        )
+
+
 def main() -> None:
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 

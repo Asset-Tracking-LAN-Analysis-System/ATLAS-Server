@@ -107,7 +107,7 @@ class DBHandler:
         )
         if self.cursor.fetchall() != []:
             raise RuntimeError(
-                "Cannot change property type while records using this type already exist."
+                "Cannot change property data while records using this type already exist."
             )
         self.cursor.execute(
             f"UPDATE properties SET name='{new_name}', data_type='{new_data_type}' WHERE id={property_id}"
@@ -126,6 +126,51 @@ class DBHandler:
         self.cursor.execute(
             f"UPDATE entities SET name='{new_name}' WHERE id='{entity_id}'"
         )
+        self.connection.commit()
+
+    ## delete Data ##
+    def delete_property(self, property_id: int) -> None:
+        self.cursor.execute(
+            f"SELECT * FROM type_properties WHERE property_id={property_id}"
+        )
+        self.cursor.execute(
+            f"SELECT * FROM entity_properties WHERE property_id={property_id}"
+        )
+        if self.cursor.fetchall() != []:
+            raise RuntimeError(
+                "Cannot delete property while records using this property already exist."
+            )
+        self.cursor.execute(f"DELETE FROM properties WHERE id={property_id}")
+        self.connection.commit()
+
+    def delete_type(self, type_id: int) -> None:
+        self.cursor.execute(f"SELECT * FROM entities WHERE type_id={type_id}")
+        self.cursor.execute(f"SELECT * FROM type_properties WHERE type_id={type_id}")
+        self.cursor.execute(
+            f"SELECT * FROM type_containment_rules WHERE parent_type={type_id} OR child_type={type_id}"
+        )
+        if self.cursor.fetchall() != []:
+            raise RuntimeError(
+                "Cannot delete type while records using this type already exist."
+            )
+        self.cursor.execute(f"DELETE FROM entity_types WHERE id={type_id}")
+        self.connection.commit()
+
+    def delete_entity(self, entity_id: str) -> None:
+        self.cursor.execute(
+            f"SELECT * FROM containment WHERE parent_id='{entity_id}' OR child_id='{entity_id}'"
+        )
+        self.cursor.execute(
+            f"SELECT * FROM entity_properties WHERE entity_id='{entity_id}'"
+        )
+        self.cursor.execute(
+            f"SELECT * FROM network_interfaces WHERE entity_id='{entity_id}'"
+        )
+        if self.cursor.fetchall() != []:
+            raise RuntimeError(
+                "Cannot delete entity while records using this entity already exist."
+            )
+        self.cursor.execute(f"DELETE FROM entities WHERE id='{entity_id}'")
         self.connection.commit()
 
 
