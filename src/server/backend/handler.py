@@ -173,6 +173,65 @@ class DBHandler:
         self.cursor.execute(f"DELETE FROM entities WHERE id='{entity_id}'")
         self.connection.commit()
 
+    #######################################
+    ############## Cointainment ###########
+    #######################################
+
+    ## rules ##
+    def add_containment_rule(self, parent_type_id: int, child_type_id: int) -> None:
+        self.cursor.execute(
+            "INSERT INTO type_containment_rules (parent_type, child_type) VALUES (?, ?)",
+            (parent_type_id, child_type_id),
+        )
+        self.connection.commit()
+
+    def delete_containment_rule(self, parent_type_id: int, child_type_id: int) -> None:
+        self.cursor.execute(
+            f"DELETE FROM type_containment_rules WHERE parent_type={parent_type_id} AND child_type={child_type_id}"
+        )
+        self.connection.commit()
+
+    def get_containment_rules(self) -> list[dict[str, int]]:
+        self.cursor.execute("SELECT * FROM type_containment_rules")
+        raw_data: list[tuple[int, int]] = self.cursor.fetchall()
+
+        result: list[dict[str, int]] = []
+        for parent, child in raw_data:
+            result.append({"PARENT": parent, "CHILD": child})
+        return result
+
+    ## Containment-Register ##
+    def add_containment(
+        self, parent_entity_id: str, child_entity_id: str, slot: str | None = None
+    ) -> None:
+        self.cursor.execute(
+            f"SELECT * FROM containment WHERE child_id='{child_entity_id}'"
+        )
+        if self.cursor.fetchall() != []:
+            raise RuntimeError(
+                "Can't add entry, since child is allready bind in another parent."
+            )
+        self.cursor.execute(
+            "INSERT INTO containment (parent_id, child_id, slot) VALUES (?, ?, ?)",
+            (parent_entity_id, child_entity_id, slot),
+        )
+        self.connection.commit()
+
+    def delete_containment(self, parent_entity_id: str, child_entity_id: str) -> None:
+        self.cursor.execute(
+            f"DELETE FROM containment WHERE parent_id={parent_entity_id} AND child_id={child_entity_id}"
+        )
+        self.connection.commit()
+
+    def get_containment(self) -> list[dict[str, str | None]]:
+        self.cursor.execute("SELECT * FROM containment")
+        raw_data: list[tuple[str, str, str | None]] = self.cursor.fetchall()
+
+        result: list[dict[str, str | None]] = []
+        for parent, child, slot in raw_data:
+            result.append({"PARENT": parent, "CHILD": child, "SLOT": slot})
+        return result
+
 
 def main() -> None:
     handler = DBHandler()
