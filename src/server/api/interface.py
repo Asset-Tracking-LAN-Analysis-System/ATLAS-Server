@@ -7,6 +7,8 @@ from .types import (
     TypeListResponse,
     EntityListResponse,
     EntityValueListResponse,
+    ContainmentRuleListResponse,
+    ContainmentListResponse,
     SuccessResponse,
 )
 
@@ -319,7 +321,135 @@ def delete_entity(entity_id: str) -> SuccessResponse | ErrorResponse:
         )
 
 
-# TODO: add containment
+#######################################
+############## Cointainment ###########
+#######################################
+
+
+## rules ##
+@app.get("/containment_rules")
+def list_containment_rules() -> ContainmentRuleListResponse | ErrorResponse:
+    try:
+        data: list[dict[str, int]] = handler.get_containment_rules()
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        if data is None:
+            return ContainmentRuleListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
+        else:
+            return ContainmentRuleListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
+
+
+@app.post("/containment_rule")
+def add_containment_rule(data: dict[str, int]) -> SuccessResponse | ErrorResponse:
+    try:
+        parent_type_id: int = int(data["PARENT_TYPE_ID"])
+        child_type_id: int = int(data["CHILD_TYPE_ID"])
+        handler.add_containment_rule(parent_type_id, child_type_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(STATUS="success", ERROR=None, CODE=201)
+
+
+@app.delete("/containment_rule/{parent_type_id}/{child_type_id}")
+def delete_containment_rule(
+    parent_type_id: int, child_type_id: int
+) -> SuccessResponse | ErrorResponse:
+    try:
+        handler.delete_containment_rule(parent_type_id, child_type_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(STATUS="success", ERROR=None, CODE=201)
+
+
+@app.post("/containment")
+def add_containment(data: dict[str, str | None]) -> SuccessResponse | ErrorResponse:
+    try:
+        parent_entity_id: str = str(data["PARENT_ID"])
+        child_entity_id: str = str(data["CHILD_ID"])
+        slot: str | None = data["SLOT"]
+        handler.add_containment(parent_entity_id, child_entity_id, slot)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(STATUS="success", ERROR=None, CODE=201)
+
+
+@app.delete("/containment/{parent_entity_id}/{child_entity_id}")
+def delete_containment(
+    parent_entity_id: str, child_entity_id: str
+) -> SuccessResponse | ErrorResponse:
+    try:
+        handler.delete_containment(parent_entity_id, child_entity_id)
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        return SuccessResponse(STATUS="success", ERROR=None, CODE=201)
+
+
+@app.get("/containment")
+def get_containment() -> ContainmentListResponse | ErrorResponse:
+    try:
+        data: list[dict[str, str | None]] = handler.get_containment()
+    except Exception as e:
+        return ErrorResponse(
+            STATUS="fail",
+            ERROR_TYPE=type(e).__name__,
+            ERROR_MESSAGE=str(e),
+            CODE=500,
+        )
+    else:
+        if data is None:
+            return ContainmentListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=204,
+            )
+        else:
+            return ContainmentListResponse(
+                STATUS="success",
+                DATA=data,
+                ERROR=None,
+                CODE=200,
+            )
 
 
 def main() -> None:

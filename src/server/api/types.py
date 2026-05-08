@@ -36,6 +36,20 @@ class EntityValueListResponse(BaseModel):
     CODE: int
 
 
+class ContainmentRuleListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, int]] | None
+    ERROR: None
+    CODE: int
+
+
+class ContainmentListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, str | None]] | None
+    ERROR: None
+    CODE: int
+
+
 class SuccessResponse(BaseModel):
     STATUS: str
     ERROR: None
