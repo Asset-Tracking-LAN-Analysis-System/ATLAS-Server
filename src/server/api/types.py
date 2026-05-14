@@ -29,13 +29,6 @@ class EntityListResponse(BaseModel):
     CODE: int
 
 
-class EntityValueListResponse(BaseModel):
-    STATUS: str
-    DATA: list[dict[str, str | int]] | None
-    ERROR: None
-    CODE: int
-
-
 class ContainmentRuleListResponse(BaseModel):
     STATUS: str
     DATA: list[dict[str, int]] | None
@@ -46,6 +39,34 @@ class ContainmentRuleListResponse(BaseModel):
 class ContainmentListResponse(BaseModel):
     STATUS: str
     DATA: list[dict[str, str | None]] | None
+    ERROR: None
+    CODE: int
+
+
+class TypePropertyListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, int | bool]] | None
+    ERROR: None
+    CODE: int
+
+
+class EntityPropertyListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, str | int]] | None
+    ERROR: None
+    CODE: int
+
+
+class NetworkInterfaceListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, str | int]] | None
+    ERROR: None
+    CODE: int
+
+
+class NetworkLinkListResponse(BaseModel):
+    STATUS: str
+    DATA: list[dict[str, int]] | None
     ERROR: None
     CODE: int
 
