@@ -2,7 +2,7 @@
 
 This API provides access to entities, properties, and types. It is built with FastAPI and uses a database handler on the backend.
 
-The API follows a simple JSON response format for both successful and failed requests. Humanity keeps inventing new ways to wrap database calls in HTTP, and somehow this is still one of the cleaner ones.
+The API follows a simple JSON response format for both successful and failed requests.
 
 ---
 
@@ -21,8 +21,6 @@ Successful response:
 ```json
 {
   "STATUS": "success",
-  "DATA": [],
-  "ERROR": null,
   "CODE": 200
 }
 ```
@@ -32,7 +30,8 @@ Failed response:
 ```json
 {
   "STATUS": "fail",
-  "ERROR": "Internal server error",
+  "ERROR_TYPE": "<error_type>",
+  "ERROR_MESSAGE": "<error_message>",
   "CODE": 500
 }
 ```
@@ -51,25 +50,6 @@ GET /properties
 
 Returns a list of all available properties.
 
-Example response:
-
-```json
-{
-  "STATUS": "success",
-  "DATA": [
-    {
-      "ID": 1,
-      "NAME": "color",
-      "TYPE": "string"
-    }
-  ],
-  "ERROR": null,
-  "CODE": 200
-}
-```
-
----
-
 ### Get all types
 
 ```http
@@ -77,8 +57,6 @@ GET /types
 ```
 
 Returns a list of all available types.
-
----
 
 ### Get all entities
 
@@ -88,25 +66,53 @@ GET /entities
 
 Returns a list of all entities.
 
----
-
-### Get values of a specific entity
+### Get all type properties
 
 ```http
-GET /entity/{entity_id}
+GET /type_properties
 ```
 
-Path parameters:
+Returns a list of all type-property relationships.
 
-| Name      | Type   | Description                    |
-| --------- | ------ | ------------------------------ |
-| entity_id | string | The ID of the requested entity |
-
-Example:
+### Get all entity properties
 
 ```http
-GET /entity/001-000001
+GET /entity_properties
 ```
+
+Returns a list of all entity-property relationships.
+
+### Get all containment rules
+
+```http
+GET /containment_rules
+```
+
+Returns a list of all containment rules.
+
+### Get all containment relationships
+
+```http
+GET /containment
+```
+
+Returns a list of all containment relationships.
+
+### Get all network interfaces
+
+```http
+GET /network_interfaces
+```
+
+Returns a list of all network interfaces.
+
+### Get all network links
+
+```http
+GET /network_links
+```
+
+Returns a list of all network links.
 
 ---
 
@@ -122,217 +128,283 @@ Request body:
 
 ```json
 {
-  "NAME": "weight",
-  "TYPE": "integer"
+  "NAME": "<property_name>",
+  "TYPE": "<property_type>"
 }
 ```
 
-Example success response:
+### Create a new type
+
+```http
+POST /types
+```
+
+Request body:
 
 ```json
 {
-  "STATUS": "success",
-  "ERROR": null,
-  "CODE": 201
+  "NAME": "<type_name>",
+  "IS_NETWORK_RELEVANT": true
+}
+```
+
+### Create a new entity
+
+```http
+POST /entity
+```
+
+Request body:
+
+```json
+{
+  "NAME": "<entity_name>",
+  "TYPE_ID": 1
+}
+```
+
+### Create a new type-property relationship
+
+```http
+POST /type_property
+```
+
+Request body:
+
+```json
+{
+  "TYPE_ID": 1,
+  "PROPERTY_ID": 2,
+  "REQUIRED": true
+}
+```
+
+### Create a new entity-property relationship
+
+```http
+POST /entity_property
+```
+
+Request body:
+
+```json
+{
+  "ENTITY_ID": "<entity_id>",
+  "PROPERTY_ID": 2,
+  "VALUE": "<value>"
+}
+```
+
+### Create a new containment rule
+
+```http
+POST /containment_rule
+```
+
+Request body:
+
+```json
+{
+  "PARENT_TYPE_ID": 1,
+  "CHILD_TYPE_ID": 2
+}
+```
+
+### Create a new containment relationship
+
+```http
+POST /containment
+```
+
+Request body:
+
+```json
+{
+  "PARENT_ID": "<parent_entity_id>",
+  "CHILD_ID": "<child_entity_id>",
+  "SLOT": "<slot>"
+}
+```
+
+### Create a new network interface
+
+```http
+POST /network_interface
+```
+
+Request body:
+
+```json
+{
+  "ENTITY_ID": "<entity_id>",
+  "INTERFACE_NAME": "<interface_name>",
+  "MAC": "<mac_address>",
+  "IP": "<ip_address>"
+}
+```
+
+### Create a new network link
+
+```http
+POST /network_link
+```
+
+Request body:
+
+```json
+{
+  "INTERFACE_A": 1,
+  "INTERFACE_B": 2
 }
 ```
 
 ---
 
-## PUT Endpoint Example
+## PUT Endpoints
 
-The current API does not include an update route yet, but a common pattern would look like this:
+### Update a property
 
 ```http
 PUT /property/{property_id}
 ```
 
-Example request body:
+Request body:
 
 ```json
 {
-  "NAME": "updated_weight",
-  "TYPE": "float"
+  "NAME": "<new_property_name>",
+  "DATA_TYPE": "<new_property_type>"
 }
 ```
 
-Example response:
+### Update a type
+
+```http
+PUT /type/{type_id}
+```
+
+Request body:
 
 ```json
 {
-  "STATUS": "success",
-  "ERROR": null,
-  "CODE": 200
+  "NAME": "<new_type_name>",
+  "NETWORK_RELEVANT": true
+}
+```
+
+### Update an entity
+
+```http
+PUT /entity/{entity_id}
+```
+
+Request body:
+
+```json
+{
+  "NAME": "<new_entity_name>"
+}
+```
+
+### Update an entity-property relationship
+
+```http
+PUT /entity_property/{entity_id}/{property_id}
+```
+
+Request body:
+
+```json
+{
+  "VALUE": "<new_value>"
+}
+```
+
+### Update a containment relationship
+
+```http
+PUT /containment/{parent_entity_id}/{child_entity_id}
+```
+
+Request body:
+
+```json
+{
+  "SLOT": "<new_slot>"
+}
+```
+
+### Update a network interface
+
+```http
+PUT /network_interface/{interface_id}
+```
+
+Request body:
+
+```json
+{
+  "ENTITY_ID": "<new_entity_id>",
+  "INTERFACE_NAME": "<new_interface_name>",
+  "MAC": "<new_mac_address>",
+  "IP": "<new_ip_address>"
 }
 ```
 
 ---
 
-## DELETE Endpoint Example
+## DELETE Endpoints
 
-The current API does not include a delete route yet, but a common pattern would look like this:
+### Delete a property
 
 ```http
 DELETE /property/{property_id}
 ```
 
-Example response:
+### Delete a type
 
-```json
-{
-  "STATUS": "success",
-  "ERROR": null,
-  "CODE": 200
-}
+```http
+DELETE /type/{type_id}
 ```
 
----
+### Delete an entity
 
-# Server-Side Python Skeleton
-
-```python
-from fastapi import FastAPI
-
-app = FastAPI()
-
-
-@app.get("/items")
-def get_items():
-    return {
-        "STATUS": "success",
-        "DATA": [],
-        "ERROR": None,
-        "CODE": 200,
-    }
-
-
-@app.post("/item")
-def create_item(data: dict):
-    return {
-        "STATUS": "success",
-        "ERROR": None,
-        "CODE": 201,
-    }
-
-
-@app.put("/item/{item_id}")
-def update_item(item_id: int, data: dict):
-    return {
-        "STATUS": "success",
-        "ERROR": None,
-        "CODE": 200,
-    }
-
-
-@app.delete("/item/{item_id}")
-def delete_item(item_id: int):
-    return {
-        "STATUS": "success",
-        "ERROR": None,
-        "CODE": 200,
-    }
+```http
+DELETE /entity/{entity_id}
 ```
 
----
+### Delete a type-property relationship
 
-# Python Client Skeleton
-
-```python
-import requests
-
-BASE_URL = "http://localhost:8000"
-
-
-def get_properties() -> dict:
-    response = requests.get(f"{BASE_URL}/properties")
-    return response.json()
-
-
-def create_property(name: str, property_type: str) -> dict:
-    payload = {
-        "NAME": name,
-        "TYPE": property_type,
-    }
-
-    response = requests.post(f"{BASE_URL}/property", json=payload)
-    return response.json()
-
-
-def update_property(property_id: int, name: str, property_type: str) -> dict:
-    payload = {
-        "NAME": name,
-        "TYPE": property_type,
-    }
-
-    response = requests.put(
-        f"{BASE_URL}/property/{property_id}",
-        json=payload,
-    )
-    return response.json()
-
-
-def delete_property(property_id: int) -> dict:
-    response = requests.delete(f"{BASE_URL}/property/{property_id}")
-    return response.json()
+```http
+DELETE /type_property/{type_id}/{property_id}
 ```
 
----
+### Delete an entity-property relationship
 
-# JavaScript Client Skeleton
-
-```javascript
-const BASE_URL = "http://localhost:8000";
-
-async function getProperties() {
-  const response = await fetch(`${BASE_URL}/properties`);
-  return await response.json();
-}
-
-async function createProperty(name, type) {
-  const response = await fetch(`${BASE_URL}/property`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      NAME: name,
-      TYPE: type,
-    }),
-  });
-
-  return await response.json();
-}
-
-async function updateProperty(propertyId, name, type) {
-  const response = await fetch(`${BASE_URL}/property/${propertyId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      NAME: name,
-      TYPE: type,
-    }),
-  });
-
-  return await response.json();
-}
-
-async function deleteProperty(propertyId) {
-  const response = await fetch(`${BASE_URL}/property/${propertyId}`, {
-    method: "DELETE",
-  });
-
-  return await response.json();
-}
+```http
+DELETE /entity_property/{entity_id}/{property_id}
 ```
 
----
+### Delete a containment rule
 
-# Notes
+```http
+DELETE /containment_rule/{parent_type_id}/{child_type_id}
+```
 
-- Use HTTP status codes consistently.
-- Keep response structures identical across all endpoints.
-- Prefer singular endpoint names for single resources and plural names for collections.
-- Add validation models with Pydantic for production use.
-- Consider adding authentication if the API will be public. Because eventually every harmless little internal API turns into "temporary production" and then survives for seven years through fear and duct tape.
+### Delete a containment relationship
+
+```http
+DELETE /containment/{parent_entity_id}/{child_entity_id}
+```
+
+### Delete a network interface
+
+```http
+DELETE /network_interface/{interface_id}
+```
+
+### Delete a network link
+
+```http
+DELETE /network_link/{link_id}
+```

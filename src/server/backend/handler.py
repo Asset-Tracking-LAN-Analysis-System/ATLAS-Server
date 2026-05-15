@@ -7,6 +7,27 @@ from .helper import get_first_free_serial
 
 class DBHandler:
     def __init__(self) -> None:
+        """
+        Initializes a new DBHandler instance and establishes a connection to the SQLite database.
+
+        This function sets the path to the database file, connects to it, and creates a cursor object
+        for interacting with the database. The database path is resolved relative to this file's location.
+
+        Example:
+            handler = DBHandler()
+            # handler.connection and handler.cursor are now available.
+
+        Args:
+            self:
+                The instance of the class.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Optional notes:
+            `check_same_thread=False` is required as the handler may be called from multiple threads (e.g., by the API server).
+        """
         self.db_path: str = os.path.join(
             str(Path(__file__).resolve().parent), "..", "data", "atlas.db"
         )
@@ -15,6 +36,33 @@ class DBHandler:
 
     ## get data ##
     def get_all_properties(self) -> list[dict[str, str | int | None]]:
+        """
+        Retrieves all defined properties from the database.
+
+        This function executes a SELECT query on the `properties` table and formats the results
+        as a list of dictionaries, each representing a property with its metadata.
+        The first two entries in the result list are static dictionaries for "ID" and "Name",
+        serving as default fields for properties.
+
+        Example:
+            handler = DBHandler()
+            properties = handler.get_all_properties()
+            # properties would look like this:
+            # [
+            #   {"ID": None, "NAME": "ID", "TYPE": "text"},
+            #   {"ID": None, "NAME": "Name", "TYPE": "text"},
+            #   {"ID": 1, "NAME": "Manufacturer", "TYPE": "text"}
+            # ]
+
+        Args:
+            self:
+                The instance of the class.
+
+        Returns:
+            list[dict[str, str | int | None]]:
+                A list of dictionaries, each representing a property, including its ID, NAME, and TYPE.
+                `ID` and `Name` are always the first two elements.
+        """
         self.cursor.execute("SELECT * FROM properties")
         raw_data: list[tuple[int, str, str]] = self.cursor.fetchall()
         result: list[dict[str, str | int | None]] = [
@@ -26,6 +74,29 @@ class DBHandler:
         return result
 
     def get_all_types(self) -> list[dict[str, str | int | bool]]:
+        """
+        Retrieves all defined entity types from the database.
+
+        This function executes a SELECT query on the `entity_types` table and formats the results
+        as a list of dictionaries, each representing an entity type with its metadata.
+
+        Example:
+            handler = DBHandler()
+            entity_types = handler.get_all_types()
+            # entity_types would look like this:
+            # [
+            #   {"ID": 1, "NAME": "Server", "NETWORK_RELEVANT": True},
+            #   {"ID": 2, "NAME": "Switch", "NETWORK_RELEVANT": True}
+            # ]
+
+        Args:
+            self:
+                The instance of the class.
+
+        Returns:
+            list[dict[str, str | int | bool]]:
+                A list of dictionaries, each representing an entity type, including ID, NAME, and NETWORK_RELEVANT.
+        """
         self.cursor.execute("SELECT * FROM entity_types")
         raw_data: list[tuple[int, str, int]] = self.cursor.fetchall()
         result: list[dict[str, str | int | bool]] = []
@@ -36,6 +107,30 @@ class DBHandler:
         return result
 
     def get_all_entities(self) -> list[dict[str, str]]:
+        """
+        Retrieves all defined entities from the database.
+
+        This function executes a SELECT query on the `entities` table and formats the results
+        as a list of dictionaries, each representing an entity with its metadata.
+        Only the ID and NAME of the entity are returned.
+
+        Example:
+            handler = DBHandler()
+            entities = handler.get_all_entities()
+            # entities would look like this:
+            # [
+            #   {"ID": "001-000001", "NAME": "Server-01"},
+            #   {"ID": "002-000001", "NAME": "Switch-01"}
+            # ]
+
+        Args:
+            self:
+                The instance of the class.
+
+        Returns:
+            list[dict[str, str]]:
+                A list of dictionaries, each representing an entity, including ID and NAME.
+        """
         self.cursor.execute("SELECT * FROM entities")
         raw_data: list[tuple[str, int, int, str, str]] = self.cursor.fetchall()
         result: list[dict[str, str]] = []
@@ -46,7 +141,30 @@ class DBHandler:
     ## add Data ##
     def add_property(self, name: str, data_type: str) -> None:
         """
-        type can be text, float, int or bool
+        Adds a new property to the database.
+
+        This function inserts a new entry into the `properties` table after detecting a missing ID.
+        It validates the `data_type` to ensure it is a valid type.
+
+        Example:
+            handler = DBHandler()
+            handler.add_property(name="Manufacturer", data_type="text")
+            # A new property will be added to the database.
+
+        Args:
+            self:
+                The instance of the class.
+            name (str):
+                The name of the property to add.
+            data_type (str):
+                The data type of the property. Valid types are "text", "float", "int", or "bool".
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Optional notes:
+            Raises a `ValueError` if the `data_type` is invalid.
         """
         if data_type not in ["text", "float", "int", "bool"]:
             raise ValueError(f"{data_type=} is not a valid data type")
@@ -58,6 +176,29 @@ class DBHandler:
         self.connection.commit()
 
     def add_type(self, name: str, is_network_relevant: bool) -> None:
+        """
+        Adds a new entity type to the database.
+
+        This function inserts a new entry into the `entity_types` table after detecting a missing ID.
+        The `is_network_relevant` parameter is converted to an integer (1 or 0).
+
+        Example:
+            handler = DBHandler()
+            handler.add_type(name="Server", is_network_relevant=True)
+            # A new entity type will be added to the database.
+
+        Args:
+            self:
+                The instance of the class.
+            name (str):
+                The name of the entity type to add.
+            is_network_relevant (bool):
+                Indicates whether the entity type is network relevant.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         gap: int = detect_id_gap(self.cursor, "entity_types", "id")
         self.cursor.execute(
             "INSERT INTO entity_types (id, name, network_relevant) VALUES (?, ?, ?)",
@@ -66,6 +207,29 @@ class DBHandler:
         self.connection.commit()
 
     def add_entity(self, type_id: int, name: str) -> None:
+        """
+        Adds a new entity to the database.
+
+        This function generates a unique entity ID based on the `type_id` and a free serial number.
+        Then, it inserts a new entry into the `entities` table.
+
+        Example:
+            handler = DBHandler()
+            handler.add_entity(type_id=1, name="Server-01")
+            # A new entity with an ID like "001-000001" will be added to the database.
+
+        Args:
+            self:
+                The instance of the class.
+            type_id (int):
+                The ID of the type to which the entity belongs.
+            name (str):
+                The name of the entity to add.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         serial: int = get_first_free_serial(self.cursor, type_id)
         entity_id: str = f"{type_id:03}-{serial:06}"
         self.cursor.execute(

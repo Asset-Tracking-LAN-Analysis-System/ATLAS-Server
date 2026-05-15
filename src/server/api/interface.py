@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from backend.handler import DBHandler
+from server.backend.handler import DBHandler
 from .types import (
     ErrorResponse,
     PropertyListResponse,
