@@ -2,17 +2,26 @@ from fastapi import FastAPI
 import uvicorn
 from server.backend.handler import DBHandler
 from .types import (
-    ErrorResponse,
-    PropertyListResponse,
-    TypeListResponse,
-    EntityListResponse,
-    ContainmentRuleListResponse,
+    Containment,
     ContainmentListResponse,
-    TypePropertyListResponse,
+    ContainmentRule,
+    ContainmentRuleListResponse,
+    Entity,
+    EntityListResponse,
+    EntityProperty,
     EntityPropertyListResponse,
+    ErrorResponse,
+    NetworkInterface,
     NetworkInterfaceListResponse,
+    NetworkLink,
     NetworkLinkListResponse,
     SuccessResponse,
+    Type,
+    TypeListResponse,
+    TypeProperty,
+    TypePropertyListResponse,
+    Property,
+    PropertyListResponse,
 )
 
 app = FastAPI()
@@ -23,7 +32,9 @@ handler = DBHandler()
 @app.get("/properties")
 def list_properties() -> PropertyListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str | int | None]] = handler.get_all_properties()
+        data: list[Property] = [
+            Property.model_validate(item) for item in handler.get_all_properties()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -51,7 +62,9 @@ def list_properties() -> PropertyListResponse | ErrorResponse:
 @app.get("/types")
 def list_types() -> TypeListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str | int | bool]] = handler.get_all_types()
+        data: list[Type] = [
+            Type.model_validate(item) for item in handler.get_all_types()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -79,7 +92,9 @@ def list_types() -> TypeListResponse | ErrorResponse:
 @app.get("/entities")
 def list_entities() -> EntityListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str]] = handler.get_all_entities()
+        data: list[Entity] = [
+            Entity.model_validate(item) for item in handler.get_all_entities()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -339,7 +354,9 @@ def delete_type_property(
 @app.get("/type_properties")
 def get_type_properties() -> TypePropertyListResponse | ErrorResponse:
     try:
-        data: list[dict[str, int | bool]] = handler.get_type_properties()
+        data: list[TypeProperty] = [
+            TypeProperty.model_validate(item) for item in handler.get_type_properties()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -421,7 +438,10 @@ def delete_entity_property(
 @app.get("/entity_properties")
 def get_entity_properties() -> EntityPropertyListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str | int]] = handler.get_entity_properties()
+        data: list[EntityProperty] = [
+            EntityProperty.model_validate(item)
+            for item in handler.get_entity_properties()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -455,7 +475,10 @@ def get_entity_properties() -> EntityPropertyListResponse | ErrorResponse:
 @app.get("/containment_rules")
 def list_containment_rules() -> ContainmentRuleListResponse | ErrorResponse:
     try:
-        data: list[dict[str, int]] = handler.get_containment_rules()
+        data: list[ContainmentRule] = [
+            ContainmentRule.model_validate(item)
+            for item in handler.get_containment_rules()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -570,7 +593,9 @@ def delete_containment(
 @app.get("/containment")
 def get_containment() -> ContainmentListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str | None]] = handler.get_containment()
+        data: list[Containment] = [
+            Containment.model_validate(item) for item in handler.get_containment()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -661,7 +686,10 @@ def delete_network_interface(interface_id: int) -> SuccessResponse | ErrorRespon
 @app.get("/network_interfaces")
 def get_network_interfaces() -> NetworkInterfaceListResponse | ErrorResponse:
     try:
-        data: list[dict[str, str | int]] = handler.get_network_interfaces()
+        data: list[NetworkInterface] = [
+            NetworkInterface.model_validate(item)
+            for item in handler.get_network_interfaces()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",
@@ -722,7 +750,9 @@ def delete_network_link(link_id: int) -> SuccessResponse | ErrorResponse:
 @app.get("/network_links")
 def get_network_links() -> NetworkLinkListResponse | ErrorResponse:
     try:
-        data: list[dict[str, int]] = handler.get_network_links()
+        data: list[NetworkLink] = [
+            NetworkLink.model_validate(item) for item in handler.get_network_links()
+        ]
     except Exception as e:
         return ErrorResponse(
             STATUS="fail",

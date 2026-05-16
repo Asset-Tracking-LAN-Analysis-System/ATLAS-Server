@@ -1,6 +1,60 @@
 from pydantic import BaseModel
 
 
+class Property(BaseModel):
+    ID: int | None
+    NAME: str
+    TYPE: str
+
+
+class Type(BaseModel):
+    ID: int
+    NAME: str
+    NETWORK_RELEVANT: bool
+
+
+class Entity(BaseModel):
+    ID: str
+    NAME: str
+
+
+class TypeProperty(BaseModel):
+    TYPE_ID: int
+    PROPERTY_ID: int
+    REQUIRED: bool
+
+
+class EntityProperty(BaseModel):
+    ENTITY_ID: str
+    PROPERTY_ID: int
+    VALUE: str
+
+
+class ContainmentRule(BaseModel):
+    PARENT_TYPE_ID: int
+    CHILD_TYPE_ID: int
+
+
+class Containment(BaseModel):
+    PARENT_ID: str
+    CHILD_ID: str
+    SLOT: str | None
+
+
+class NetworkInterface(BaseModel):
+    ID: int
+    ENTITY_ID: str
+    NAME: str
+    IP_ADDRESS: str
+    MAC_ADDRESS: str
+
+
+class NetworkLink(BaseModel):
+    ID: int
+    INTERFACE_A: int
+    INTERFACE_B: int
+
+
 class ErrorResponse(BaseModel):
     STATUS: str
     ERROR_TYPE: str
@@ -10,63 +64,63 @@ class ErrorResponse(BaseModel):
 
 class PropertyListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str | int | None]] | None
+    DATA: list[Property] | None
     ERROR: None
     CODE: int
 
 
 class TypeListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str | int | bool]] | None
+    DATA: list[Type] | None
     ERROR: None
     CODE: int
 
 
 class EntityListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str]] | None
+    DATA: list[Entity] | None
     ERROR: None
     CODE: int
 
 
 class ContainmentRuleListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, int]] | None
+    DATA: list[ContainmentRule] | None
     ERROR: None
     CODE: int
 
 
 class ContainmentListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str | None]] | None
+    DATA: list[Containment] | None
     ERROR: None
     CODE: int
 
 
 class TypePropertyListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, int | bool]] | None
+    DATA: list[TypeProperty] | None
     ERROR: None
     CODE: int
 
 
 class EntityPropertyListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str | int]] | None
+    DATA: list[EntityProperty] | None
     ERROR: None
     CODE: int
 
 
 class NetworkInterfaceListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, str | int]] | None
+    DATA: list[NetworkInterface] | None
     ERROR: None
     CODE: int
 
 
 class NetworkLinkListResponse(BaseModel):
     STATUS: str
-    DATA: list[dict[str, int]] | None
+    DATA: list[NetworkLink] | None
     ERROR: None
     CODE: int
 

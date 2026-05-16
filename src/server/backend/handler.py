@@ -242,6 +242,29 @@ class DBHandler:
     def update_property(
         self, property_id: int, new_name: str, new_data_type: str
     ) -> None:
+        """
+        Updates an existing property in the database.
+
+        This function modifies the name and data type of a property identified by its ID.
+        It ensures that the new data type is valid and that no records are using the property
+        before making changes.
+
+        Args:
+            property_id (int):
+                The ID of the property to update.
+            new_name (str):
+                The new name for the property.
+            new_data_type (str):
+                The new data type for the property. Valid types are "text", "float", "int", or "bool".
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            ValueError: If the new data type is invalid.
+            RuntimeError: If records using this property already exist.
+        """
         if new_data_type not in ["text", "float", "int", "bool"]:
             raise ValueError(f"{new_data_type=} is not a valid data type.")
         self.cursor.execute(
@@ -259,6 +282,27 @@ class DBHandler:
     def update_type(
         self, type_id: int, new_name: str, new_is_network_relevant: bool
     ) -> None:
+        """
+        Updates an existing entity type in the database.
+
+        This function modifies the name and network relevance of an entity type identified by its ID.
+        It ensures that no records are using the entity type before making changes.
+
+        Args:
+            type_id (int):
+                The ID of the entity type to update.
+            new_name (str):
+                The new name for the entity type.
+            new_is_network_relevant (bool):
+                The new network relevance status for the entity type.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this entity type already exist.
+        """
         queries: list[str] = [
             "SELECT 1 FROM entities WHERE type_id=? LIMIT 1",
             "SELECT 1 FROM type_properties WHERE type_id=? LIMIT 1",
@@ -284,6 +328,21 @@ class DBHandler:
         self.connection.commit()
 
     def update_entity(self, entity_id: str, new_name: str) -> None:
+        """
+        Updates an existing entity in the database.
+
+        This function modifies the name of an entity identified by its ID.
+
+        Args:
+            entity_id (str):
+                The ID of the entity to update.
+            new_name (str):
+                The new name for the entity.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"UPDATE entities SET name='{new_name}' WHERE id='{entity_id}'"
         )
@@ -291,6 +350,23 @@ class DBHandler:
 
     ## delete Data ##
     def delete_property(self, property_id: int) -> None:
+        """
+        Deletes a property from the database.
+
+        This function removes a property identified by its ID from the `properties` table.
+        It ensures that no records are using the property before deletion.
+
+        Args:
+            property_id (int):
+                The ID of the property to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this property already exist.
+        """
         queries: list[str] = [
             "SELECT 1 FROM type_properties WHERE property_id=? LIMIT 1",
             "SELECT 1 FROM entity_properties WHERE property_id=? LIMIT 1",
@@ -312,6 +388,23 @@ class DBHandler:
         self.connection.commit()
 
     def delete_type(self, type_id: int) -> None:
+        """
+        Deletes an entity type from the database.
+
+        This function removes an entity type identified by its ID from the `entity_types` table.
+        It ensures that no records are using the entity type before deletion.
+
+        Args:
+            type_id (int):
+                The ID of the entity type to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this entity type already exist.
+        """
         queries: list[str] = [
             "SELECT 1 FROM entities WHERE type_id=? LIMIT 1",
             "SELECT 1 FROM type_properties WHERE type_id=? LIMIT 1",
@@ -335,6 +428,23 @@ class DBHandler:
         self.connection.commit()
 
     def delete_entity(self, entity_id: str) -> None:
+        """
+        Deletes an entity from the database.
+
+        This function removes an entity identified by its ID from the `entities` table.
+        It ensures that no records are using the entity before deletion.
+
+        Args:
+            entity_id (str):
+                The ID of the entity to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this entity already exist.
+        """
         queries: list[str] = [
             "SELECT 1 FROM containment WHERE parent_id=? OR child_id=? LIMIT 1",
             "SELECT 1 FROM entity_properties WHERE entity_id=? LIMIT 1",
@@ -363,6 +473,23 @@ class DBHandler:
 
     ## Type-Property ##
     def add_type_property(self, type_id: int, property_id: int, required: bool) -> None:
+        """
+        Adds a property to a specific entity type in the database.
+
+        This function associates a property with an entity type and marks it as required or optional.
+
+        Args:
+            type_id (int):
+                The ID of the entity type to associate the property with.
+            property_id (int):
+                The ID of the property to add.
+            required (bool):
+                Indicates whether the property is required for the entity type.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             "INSERT INTO type_properties (type_id, property_id, required) VALUES (?, ?, ?)",
             (type_id, property_id, 1 if required else 0),
@@ -370,6 +497,25 @@ class DBHandler:
         self.connection.commit()
 
     def delete_type_property(self, type_id: int, property_id: int) -> None:
+        """
+        Deletes a property from a specific entity type in the database.
+
+        This function removes the association between a property and an entity type.
+        It ensures that no records are using the property before deletion.
+
+        Args:
+            type_id (int):
+                The ID of the entity type to remove the property from.
+            property_id (int):
+                The ID of the property to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this property already exist.
+        """
         self.cursor.execute(
             "SELECT 1 FROM entity_properties WHERE property_id=? AND entity_id IN (SELECT id FROM entities WHERE type_id=?) LIMIT 1",
             (property_id, type_id),
@@ -384,6 +530,21 @@ class DBHandler:
         self.connection.commit()
 
     def get_type_properties(self) -> list[dict[str, int | bool]]:
+        """
+        Retrieves all type-property associations from the database.
+
+        This function fetches all associations between entity types and properties,
+        including whether each property is required.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, int | bool]]:
+                A list of dictionaries, each representing a type-property association,
+                including TYPE_ID, PROPERTY_ID, and REQUIRED status.
+        """
         self.cursor.execute("SELECT * FROM type_properties")
         raw_data: list[tuple[int, int, int]] = self.cursor.fetchall()
 
@@ -400,6 +561,23 @@ class DBHandler:
 
     ## Entity-Property ##
     def add_entity_property(self, entity_id: str, property_id: int, value: str) -> None:
+        """
+        Adds a property to a specific entity in the database.
+
+        This function associates a property with an entity and assigns it a value.
+
+        Args:
+            entity_id (str):
+                The ID of the entity to associate the property with.
+            property_id (int):
+                The ID of the property to add.
+            value (str):
+                The value of the property for the entity.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             "INSERT INTO entity_properties (entity_id, property_id, value) VALUES (?, ?, ?)",
             (entity_id, property_id, value),
@@ -409,18 +587,65 @@ class DBHandler:
     def update_entity_property(
         self, entity_id: str, property_id: int, new_value: str
     ) -> None:
+        """
+        Updates the value of a property for a specific entity in the database.
+
+        This function modifies the value of an existing property associated with an entity.
+
+        Args:
+            entity_id (str):
+                The ID of the entity whose property value is to be updated.
+            property_id (int):
+                The ID of the property to update.
+            new_value (str):
+                The new value for the property.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"UPDATE entity_properties SET value='{new_value}' WHERE entity_id='{entity_id}' AND property_id={property_id}"
         )
         self.connection.commit()
 
     def delete_entity_property(self, entity_id: str, property_id: int) -> None:
+        """
+        Deletes a property from a specific entity in the database.
+
+        This function removes the association between a property and an entity.
+
+        Args:
+            entity_id (str):
+                The ID of the entity to remove the property from.
+            property_id (int):
+                The ID of the property to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"DELETE FROM entity_properties WHERE entity_id='{entity_id}' AND property_id={property_id}"
         )
         self.connection.commit()
 
     def get_entity_properties(self) -> list[dict[str, str | int]]:
+        """
+        Retrieves all entity-property associations from the database.
+
+        This function fetches all associations between entities and their properties,
+        including the values assigned to each property.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, str | int]]:
+                A list of dictionaries, each representing an entity-property association,
+                including ENTITY_ID, PROPERTY_ID, and VALUE.
+        """
         self.cursor.execute("SELECT * FROM entity_properties")
         raw_data: list[tuple[str, int, str]] = self.cursor.fetchall()
 
@@ -437,6 +662,22 @@ class DBHandler:
 
     ## rules ##
     def add_containment_rule(self, parent_type_id: int, child_type_id: int) -> None:
+        """
+        Adds a containment rule between two entity types in the database.
+
+        This function creates a new rule specifying that entities of the parent type
+        can contain entities of the child type.
+
+        Args:
+            parent_type_id (int):
+                The ID of the parent entity type.
+            child_type_id (int):
+                The ID of the child entity type.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             "INSERT INTO type_containment_rules (parent_type, child_type) VALUES (?, ?)",
             (parent_type_id, child_type_id),
@@ -444,6 +685,26 @@ class DBHandler:
         self.connection.commit()
 
     def delete_containment_rule(self, parent_type_id: int, child_type_id: int) -> None:
+        """
+        Deletes a containment rule between two entity types in the database.
+
+        This function removes the rule specifying that entities of the parent type
+        can contain entities of the child type. It ensures that no records are using
+        the rule before deletion.
+
+        Args:
+            parent_type_id (int):
+                The ID of the parent entity type.
+            child_type_id (int):
+                The ID of the child entity type.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If records using this rule already exist.
+        """
         queries: list[str] = [
             "SELECT 1 FROM containment WHERE parent_id IN (SELECT id FROM entities WHERE type_id=?) AND child_id IN (SELECT id FROM entities WHERE type_id=?) LIMIT 1",
         ]
@@ -465,6 +726,20 @@ class DBHandler:
         self.connection.commit()
 
     def get_containment_rules(self) -> list[dict[str, int]]:
+        """
+        Retrieves all containment rules from the database.
+
+        This function fetches all rules specifying which entity types can contain others.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, int]]:
+                A list of dictionaries, each representing a containment rule,
+                including PARENT and CHILD entity type IDs.
+        """
         self.cursor.execute("SELECT * FROM type_containment_rules")
         raw_data: list[tuple[int, int]] = self.cursor.fetchall()
 
@@ -477,12 +752,33 @@ class DBHandler:
     def add_containment(
         self, parent_entity_id: str, child_entity_id: str, slot: str | None = None
     ) -> None:
+        """
+        Adds a containment relationship between two entities in the database.
+
+        This function specifies that a parent entity contains a child entity,
+        optionally assigning the child to a specific slot.
+
+        Args:
+            parent_entity_id (str):
+                The ID of the parent entity.
+            child_entity_id (str):
+                The ID of the child entity.
+            slot (str | None):
+                The slot to assign the child entity to, if applicable.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If the child entity is already contained by another parent.
+        """
         self.cursor.execute(
             f"SELECT * FROM containment WHERE child_id='{child_entity_id}'"
         )
         if self.cursor.fetchall() != []:
             raise RuntimeError(
-                "Can't add entry, since child is allready bind in another parent."
+                "Can't add entry, since child is already bound in another parent."
             )
         self.cursor.execute(
             "INSERT INTO containment (parent_id, child_id, slot) VALUES (?, ?, ?)",
@@ -493,18 +789,65 @@ class DBHandler:
     def update_containment(
         self, parent_entity_id: str, child_entity_id: str, new_slot: str | None
     ) -> None:
+        """
+        Updates the slot assignment for a containment relationship in the database.
+
+        This function modifies the slot assignment for a child entity contained by a parent entity.
+
+        Args:
+            parent_entity_id (str):
+                The ID of the parent entity.
+            child_entity_id (str):
+                The ID of the child entity.
+            new_slot (str | None):
+                The new slot to assign the child entity to.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"UPDATE containment SET slot='{new_slot}' WHERE parent_id='{parent_entity_id}' AND child_id='{child_entity_id}'"
         )
         self.connection.commit()
 
     def delete_containment(self, parent_entity_id: str, child_entity_id: str) -> None:
+        """
+        Deletes a containment relationship between two entities in the database.
+
+        This function removes the relationship specifying that a parent entity contains a child entity.
+
+        Args:
+            parent_entity_id (str):
+                The ID of the parent entity.
+            child_entity_id (str):
+                The ID of the child entity.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"DELETE FROM containment WHERE parent_id='{parent_entity_id}' AND child_id='{child_entity_id}'"
         )
         self.connection.commit()
 
     def get_containment(self) -> list[dict[str, str | None]]:
+        """
+        Retrieves all containment relationships from the database.
+
+        This function fetches all relationships specifying which entities contain others,
+        including optional slot assignments.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, str | None]]:
+                A list of dictionaries, each representing a containment relationship,
+                including PARENT, CHILD, and SLOT information.
+        """
         self.cursor.execute("SELECT * FROM containment")
         raw_data: list[tuple[str, str, str | None]] = self.cursor.fetchall()
 
@@ -521,6 +864,26 @@ class DBHandler:
     def add_network_interface(
         self, entity_id: str, interface_name: str, mac: str, ip: str
     ) -> None:
+        """
+        Adds a new network interface to the database.
+
+        This function creates a new network interface associated with a specific entity,
+        including its name, MAC address, and IP address.
+
+        Args:
+            entity_id (str):
+                The ID of the entity to associate the network interface with.
+            interface_name (str):
+                The name of the network interface.
+            mac (str):
+                The MAC address of the network interface.
+            ip (str):
+                The IP address of the network interface.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             "INSERT INTO network_interfaces (id, entity_id, interface_name, mac, ip) VALUES (?, ?, ?, ?, ?)",
             (
@@ -541,12 +904,51 @@ class DBHandler:
         new_mac: str,
         new_ip: str,
     ) -> None:
+        """
+        Updates an existing network interface in the database.
+
+        This function modifies the details of a network interface identified by its ID,
+        including its associated entity, name, MAC address, and IP address.
+
+        Args:
+            interface_id (int):
+                The ID of the network interface to update.
+            new_entity_id (str):
+                The new entity ID to associate the network interface with.
+            new_interface_name (str):
+                The new name for the network interface.
+            new_mac (str):
+                The new MAC address for the network interface.
+            new_ip (str):
+                The new IP address for the network interface.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             f"UPDATE network_interfaces SET entity_id='{new_entity_id}', interface_name='{new_interface_name}', mac='{new_mac}', ip='{new_ip}' WHERE id={interface_id}"
         )
         self.connection.commit()
 
     def delete_network_interface(self, interface_id: int) -> None:
+        """
+        Deletes a network interface from the database.
+
+        This function removes a network interface identified by its ID.
+        It ensures that no network links are associated with the interface before deletion.
+
+        Args:
+            interface_id (int):
+                The ID of the network interface to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+
+        Raises:
+            RuntimeError: If network links are associated with the interface.
+        """
         self.cursor.execute(
             "SELECT 1 FROM network_links WHERE interface_a=? OR interface_b=? LIMIT 1",
             (interface_id, interface_id),
@@ -559,6 +961,20 @@ class DBHandler:
         self.connection.commit()
 
     def get_network_interfaces(self) -> list[dict[str, str | int]]:
+        """
+        Retrieves all network interfaces from the database.
+
+        This function fetches all network interfaces, including their IDs, associated entity IDs,
+        interface names, MAC addresses, and IP addresses.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, str | int]]:
+                A list of dictionaries, each representing a network interface with its metadata.
+        """
         self.cursor.execute("SELECT * FROM network_interfaces")
         raw_data: list[tuple[int, str, str, str, str]] = self.cursor.fetchall()
 
@@ -577,6 +993,21 @@ class DBHandler:
 
     ## Network Links ##
     def add_network_link(self, interface_a: int, interface_b: int) -> None:
+        """
+        Adds a network link between two interfaces in the database.
+
+        This function creates a new link between two network interfaces, identified by their IDs.
+
+        Args:
+            interface_a (int):
+                The ID of the first network interface.
+            interface_b (int):
+                The ID of the second network interface.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(
             "INSERT INTO network_links (id, interface_a, interface_b) VALUES (?, ?, ?)",
             (detect_id_gap(self.cursor, "network_links"), interface_a, interface_b),
@@ -584,10 +1015,36 @@ class DBHandler:
         self.connection.commit()
 
     def delete_network_link(self, link_id: int) -> None:
+        """
+        Deletes a network link from the database.
+
+        This function removes a network link identified by its ID.
+
+        Args:
+            link_id (int):
+                The ID of the network link to delete.
+
+        Returns:
+            None
+                This function does not return any value.
+        """
         self.cursor.execute(f"DELETE FROM network_links WHERE id={link_id}")
         self.connection.commit()
 
     def get_network_links(self) -> list[dict[str, int]]:
+        """
+        Retrieves all network links from the database.
+
+        This function fetches all network links, including their IDs and the IDs of the connected interfaces.
+
+        Args:
+            None:
+                This function does not take any parameters.
+
+        Returns:
+            list[dict[str, int]]:
+                A list of dictionaries, each representing a network link with its metadata.
+        """
         self.cursor.execute("SELECT * FROM network_links")
         raw_data: list[tuple[int, int, int]] = self.cursor.fetchall()
 
