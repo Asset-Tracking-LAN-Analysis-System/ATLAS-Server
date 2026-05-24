@@ -1,10 +1,11 @@
 from pydantic import BaseModel
+from typing import Literal
 
 
 class Property(BaseModel):
     ID: int | None
     NAME: str
-    TYPE: str
+    TYPE: Literal["text", "int", "float", "bool"]
 
 
 class Type(BaseModel):
