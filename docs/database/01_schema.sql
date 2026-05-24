@@ -2,7 +2,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE entity_types (
     id INTEGER PRIMARY KEY CHECK(id BETWEEN 0 AND 999),
-    name TEXT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     network_relevant INTEGER NOT NULL DEFAULT 0
 );
 
