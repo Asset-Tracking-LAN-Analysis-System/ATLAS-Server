@@ -853,7 +853,7 @@ class DBHandler:
 
         result: list[dict[str, str | None]] = []
         for parent, child, slot in raw_data:
-            result.append({"PARENT": parent, "CHILD": child, "SLOT": slot})
+            result.append({"PARENT_ID": parent, "CHILD_ID": child, "SLOT": slot})
         return result
 
     ###################################
