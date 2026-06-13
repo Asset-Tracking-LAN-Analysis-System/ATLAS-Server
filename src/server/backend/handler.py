@@ -984,9 +984,9 @@ class DBHandler:
                 {
                     "ID": interface_id,
                     "ENTITY_ID": entity_id,
-                    "INTERFACE_NAME": interface_name,
-                    "MAC": mac,
-                    "IP": ip,
+                    "NAME": interface_name,
+                    "MAC_ADDRESS": mac,
+                    "IP_ADDRESS": ip,
                 }
             )
         return result
