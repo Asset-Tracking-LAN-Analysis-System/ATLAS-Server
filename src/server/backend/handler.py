@@ -447,13 +447,11 @@ class DBHandler:
         """
         queries: list[str] = [
             "SELECT 1 FROM containment WHERE parent_id=? OR child_id=? LIMIT 1",
-            "SELECT 1 FROM entity_properties WHERE entity_id=? LIMIT 1",
             "SELECT 1 FROM network_interfaces WHERE entity_id=? LIMIT 1",
         ]
 
         params: list[tuple[str, str] | tuple[str]] = [
             (entity_id, entity_id),
-            (entity_id,),
             (entity_id,),
         ]
 
@@ -465,6 +463,9 @@ class DBHandler:
                     "Cannot delete entity while records using this entity already exist."
                 )
         self.cursor.execute(f"DELETE FROM entities WHERE id='{entity_id}'")
+        self.cursor.execute(
+            f"DELETE FROM entity_properties WHERE entity_id='{entity_id}'"
+        )
         self.connection.commit()
 
     #######################################
